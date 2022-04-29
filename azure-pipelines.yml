@@ -4,6 +4,8 @@ variables:
     value: "60204366-ca50-4574-8f60-2366508e006e" 
   - name: repoName
     value: "azure-samples" 
+  - name: chartName
+    value: aks-helloworld
   - name: K8sNamespace
     value: "sample" 
   - name: aks
@@ -54,7 +56,7 @@ stages:
               $(repoName) \
               https://azure-samples.github.io/helm-charts/
             helm repo update			   
-            helm upgrade sample $(repoName) \
+            helm upgrade sample $(repoName)/$(chartName) \
               --namespace $(K8sNamespace) \
               --create-namespace \
               --install \
