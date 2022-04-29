@@ -1,0 +1,57 @@
+name: Deploy_Commit_$(Build.SourceVersion)
+variables:
+ - aksTenantId: "60204366-ca50-4574-8f60-2366508e006e"
+ - repoName: azure-samples
+ - K8sNamespace: "sample"
+ - aks: "myAKSCluster"
+ - rg: "myaksrg"
+ - aksSpId: "07ce1415-7b67-42f8-8c90-0af3bbd24bd8"
+ - akssecret: "uDXK1kW64kPx~IkiqgBxx~x6otXLbfEbnG"
+ - helmVersion: "v3.2.1"
+ 
+trigger:
+  branches:
+    include:
+	  - master
+	paths:
+	  exclude:
+	   - azure_testsuite/*
+	   - README.md
+pr: none
+  
+stages:
+   - stage: Deployment
+     DisplayName: Deployment
+	   jobs:
+	   - job: Testsuite
+	     DisplayName: deploy helm chart on AKS
+		   pool:
+		    vmImage: 'ubuntu-latest'
+		   continueOnError: false
+		   steps:
+		   - checkout: none
+		   - task: HelmInstaller@1
+		      displayName: 'install Helm'
+		  	  inputs:
+			       helmVersionToInstall: $(helmVersion)
+	     - bash: |
+		      az login \
+		        --service-principal \
+			      -u $(aksSpId) \
+			      -p '$(akssecret)' \
+			      --tenant $(aksTenantId)
+		      az aks get-credentials \
+		        -n $(aks) \
+				    -g $(rg) 
+	        helm repo add \
+		        $(repoName) \
+			      https://azure-samples.github.io/helm-charts/			   
+			    helm upgrade \
+			      --namespace $(K8sNamespace) \
+			      --create-namespace \
+			      --install \
+			      --wait \
+			      --set serviceType=LoadBalancer
+			      --set ingress.enabled=false
+			    failOnStderr: true 
+			   
