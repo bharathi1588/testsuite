@@ -1,64 +1,64 @@
-name: Deploy_Commit
+name: Deploy_Commit_$(Build.SourceVersion)
 variables:
-- name: aksTenantId
-  value: "60204366-ca50-4574-8f60-2366508e006e" 
-- name: repoName
-  value: "azure-samples" 
-- name: K8sNamespace
-  value: "sample" 
-- name: aks
-  value: "myAKSCluster" 
-- name: rg
-  value: "myaksrg" 
-- name: aksSpId
-  value: "07ce1415-7b67-42f8-8c90-0af3bbd24bd8" 
-- name: akssecret
-  value: "uDXK1kW64kPx~IkiqgBxx~x6otXLbfEbnG" 
-- name: helmVersion
-  value:  "v3.2.1"
+  - name: aksTenantId
+    value: "60204366-ca50-4574-8f60-2366508e006e" 
+  - name: repoName
+    value: "azure-samples" 
+  - name: K8sNamespace
+    value: "sample" 
+  - name: aks
+    value: "myAKSCluster" 
+  - name: rg
+    value: "myaksrg" 
+  - name: aksSpId
+    value: "07ce1415-7b67-42f8-8c90-0af3bbd24bd8" 
+  - name: akssecret
+    value: "uDXK1kW64kPx~IkiqgBxx~x6otXLbfEbnG" 
+  - name: helmVersion
+    value:  "3.2.1"
 
-trigger:
+trigger: none
+pr:
   branches:
-    include:
+   include:
     - master
   paths:
-    exclude:
-     - azure_testsuite/*
-     - README.md
-pr: none
+   exclude:
+    - azure_testsuite/*
+    - README.md
+
   
 stages:
    - stage: Deployment
      DisplayName: Deployment
-	   jobs:
-	   - job: Testsuite
-	     DisplayName: deploy helm chart on AKS
-		   pool:
-		    vmImage: 'ubuntu-latest'
-		   continueOnError: false
-		   steps:
-		   - checkout: none
-		   - task: HelmInstaller@1
-		      displayName: 'install Helm'
-		  	  inputs:
-			       helmVersionToInstall: $(helmVersion)
-	     - bash: |
-		      az login \
-		        --service-principal \
-			      -u $(aksSpId) \
-			      -p '$(akssecret)' \
-			      --tenant $(aksTenantId)
-		      az aks get-credentials \
-		        -n $(aks) \
-				    -g $(rg) 
-	        helm repo add \
-		        $(repoName) \
-			      https://azure-samples.github.io/helm-charts/			   
-			    helm upgrade \
-			      --namespace $(K8sNamespace) \
-			      --create-namespace \
-			      --install \
-			      --wait \
-			      --set serviceType=LoadBalancer
-			      --set ingress.enabled=false
-			    failOnStderr: true 
+     jobs:
+     - job: TestSuite
+       pool:
+         vmImage: 'ubuntu-latest'
+       continueOnError: false
+       steps:
+        - checkout: none
+        - task: HelmInstaller@1
+          displayName: 'install Helm'
+          inputs:
+             helmVersionToInstall: $(helmVersion)
+        - bash: |
+            az login \
+              --service-principal \
+              -u $(aksSpId) \
+              -p '$(akssecret)' \
+              --tenant $(aksTenantId)
+            az aks get-credentials \
+              -n $(aks) \
+              -g $(rg) 
+            helm repo add \
+              $(repoName) \
+              https://azure-samples.github.io/helm-charts/			   
+            helm upgrade \
+              --namespace $(K8sNamespace) \
+              --create-namespace \
+              --install \
+              --wait \
+              --set serviceType=LoadBalancer
+              --set ingress.enabled=false
+            failOnStderr: true 
