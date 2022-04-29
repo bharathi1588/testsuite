@@ -53,7 +53,7 @@ stages:
             helm repo add \
               $(repoName) \
               https://azure-samples.github.io/helm-charts/			   
-            helm upgrade \
+            helm upgrade sample $(repoName) \
               --namespace $(K8sNamespace) \
               --create-namespace \
               --install \
