@@ -30,7 +30,6 @@ pr:
   
 stages:
    - stage: Deployment
-     DisplayName: Deployment
      jobs:
      - job: TestSuite
        pool:
