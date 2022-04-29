@@ -1,4 +1,4 @@
-name: Deploy_Commit_$(Build.SourceVersion)
+name: Deploy_Commit
 variables:
 - name: aksTenantId
   value: "60204366-ca50-4574-8f60-2366508e006e" 
